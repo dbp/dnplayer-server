@@ -1,0 +1,13 @@
+*~
+dist/
+log/
+*#
+.#*
+.hsenv
+moo.sh
+moo_test.sh
+*.cfg
+site_key.txt
+cabal.sandbox*
+.cabal-sandbox/
+.dir-locals.el

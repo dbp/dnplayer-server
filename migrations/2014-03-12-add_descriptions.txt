@@ -1,0 +1,14 @@
+Description: (Description here.)
+Created: 2014-03-12 19:25:48.917877 UTC
+Depends:
+Apply:
+  CREATE TABLE descriptions (
+    id serial primary key,
+    year integer not null,
+    month integer not null,
+    day integer not null,
+    description text not null
+  );
+
+Revert:
+  DROP TABLE descriptions;
