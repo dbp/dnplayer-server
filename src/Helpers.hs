@@ -2,13 +2,7 @@
 
 module Helpers (void
                , io
-               , singleQuery
-               , singleQuery'
-               , numberQuery
-               , numberQuery'
-               , fieldQuery
-               , fieldQuery'
-               , idQuery
+               , one
                , tshow
                , tNotNull
                , readSafe
@@ -21,36 +15,16 @@ import Snap.Core
 import "mtl" Control.Monad.Trans (MonadIO, liftIO)
 import Control.Monad (void, join)
 import Data.Maybe
-import Snap.Snaplet.PostgresqlSimple
-import Database.PostgreSQL.Simple.FromField
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Char8 as B8
 
+one :: Functor f => f [a] -> f (Maybe a)
+one = fmap listToMaybe
+
 io :: MonadIO m => IO a -> m a
 io = liftIO
-
-singleQuery :: (HasPostgres m, Functor m, ToRow q, FromRow r) => Query -> q -> m (Maybe r)
-singleQuery stmt attrs = fmap listToMaybe $ query stmt attrs
-
-singleQuery' :: (HasPostgres m, Functor m, FromRow r) => Query -> m (Maybe r)
-singleQuery' stmt = fmap listToMaybe $ query_ stmt
-
-idQuery :: (HasPostgres m, Functor m, ToRow q) => Query -> q -> m (Maybe Int)
-idQuery = fieldQuery
-
-numberQuery :: (HasPostgres m, Functor m, ToRow q) => Query -> q -> m Int
-numberQuery q attrs = fmap (head.fromJust) $ singleQuery q attrs
-
-numberQuery' :: (HasPostgres m, Functor m) => Query -> m Int
-numberQuery' q = fmap (head.fromJust) $ singleQuery' q
-
-fieldQuery :: (HasPostgres m, Functor m, ToRow q, FromField r) => Query -> q -> m (Maybe r)
-fieldQuery q attrs = fmap (join . fmap listToMaybe . listToMaybe) $ query q attrs
-
-fieldQuery' :: (HasPostgres m, Functor m, FromField r) => Query -> m (Maybe r)
-fieldQuery' q = fmap (join . fmap listToMaybe . listToMaybe) $ query_ q
 
 tshow :: Show a => a -> Text
 tshow = T.pack . show

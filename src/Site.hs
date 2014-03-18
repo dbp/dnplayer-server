@@ -20,7 +20,6 @@ import qualified Data.ByteString.Char8 as B8
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Heist
-import           Snap.Snaplet.PostgresqlSimple
 import           Snap.Util.FileServe
 import           Heist
 import qualified Heist.Interpreted as I
@@ -29,22 +28,23 @@ import           Network.HTTP.Client
 import           Network.HTTP.Types.Header
 import           Data.Maybe
 import           Text.HTML.TagSoup
+import           Database.Groundhog.TH
+import           Snap.Snaplet.Groundhog.Postgresql
 ------------------------------------------------------------------------------
 import           Application
-import           State
+import           State.Desc
+import           State.Media
 import           Lib
 
 routes :: [(ByteString, AppHandler ())]
-routes = [ ("/show_desc/:datestring", handleShowDesc)
-         , ("/shows_desc_month/:shows", handleShowManyMonth)
-         , ("/media/:datestring", handleMedia)
-         , ("",          serveDirectory "static")
+routes = [ ("/v1/desc/:datestring", handleShowDesc)
+         , ("/v1/desc_month/:shows", handleShowManyMonth)
+         , ("/v1/media/:datestring", handleMedia)
          ]
 
 
 
 dateParser = do year <- count 4 digit
-                char '-'
                 month <- count 2 digit
                 day <- count 2 digit
                 return (read year, read month, read day)
@@ -154,7 +154,7 @@ handleMedia = do datestring <- fmap fromJust (getParam "datestring")
 app :: SnapletInit App App
 app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     h <- nestSnaplet "" heist $ heistInit "templates"
-    d <- nestSnaplet "db" db pgsInit
+    d <- nestSnaplet "db" db initGroundhogPostgres
     m <- liftIO $ newManager defaultManagerSettings
     addRoutes routes
     onUnload (closeManager m)
