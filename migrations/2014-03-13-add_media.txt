@@ -1,0 +1,14 @@
+Description: (Description here.)
+Created: 2014-03-13 21:50:30.069566 UTC
+Depends:
+Apply:
+  CREATE TABLE media (
+    id serial primary key,
+    year integer not null,
+    month integer not null,
+    day integer not null,
+    url text not null
+  );
+
+Revert:
+  DROP TABLE media;

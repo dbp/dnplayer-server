@@ -36,6 +36,7 @@ Executable dnplayer-server
     xmlhtml                   >= 0.1,
     parsec                    >= 3,
     http-client               >= 0.2,
+    http-types                >= 0.8,
     postgresql-simple         >= 0.4,
     snaplet-postgresql-simple,
     tagsoup

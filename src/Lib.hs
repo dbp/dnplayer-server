@@ -16,10 +16,11 @@ instance TagRep Text where
           [a] -> toTagRep a
           _ -> error $ "When using a TagRep it must be exactly one tag, you gave: " ++ (T.unpack x)
 
-getShowDescriptions :: [Tag Text] -> [((Int,Int,Int), Text)]
-getShowDescriptions tags =
-  map (getRes . sections (~== ("<a>" :: Text))) showTags
-  where getRes ts = let url = fromAttrib "href" (head (head ts)) :: Text
+getShowDescriptionsUrls :: [Tag Text] -> [((Int,Int,Int), (Text, Text))]
+getShowDescriptionsUrls tags =
+  map (\(ts, media) ->  fix (getRes (sections (~== ("<a>" :: Text)) ts), media)) showTags
+  where fix (((a,b,c),d), e) = ((a,b,c), (d,e))
+        getRes ts = let url = fromAttrib "href" (head (head ts)) :: Text
                         desc = T.intercalate "; " (map (innerText .
                                                         takeWhile (~/= ("</a>" :: Text)) .
                                                         tail) (tail ts))
@@ -33,5 +34,14 @@ getShowDescriptions tags =
                         char '/'
                         day <- many1 digit
                         return (read year, read month, read day)
-        showTags :: [[Tag Text]]
-        showTags = map (takeWhile (~/= ("</ul>" :: Text))) $ sections (~== ("<ul class='recent_shows'>" :: Text)) tags
+        showTags :: [([Tag Text], Text)]
+        showTags = map getVAndS $ sections (~== ("<ul class='recent_shows'>" :: Text)) tags
+        getVAndS tags = (takeWhile (~/= ("</ul>" :: Text)) tags,
+                         getMedia tags)
+        getMedia tags = let vid = tail (dropWhile (~/= ("<span class='videoLink'>" :: Text)) tags)
+                        in if head vid ~== ("</span>" :: Text)
+                              then let aud = head $ tail $ dropWhile (~/= ("<span class='audioLink'>" :: Text)) vid
+                                   in if aud ~== ("</span>" :: Text)
+                                         then ""
+                                         else fromAttrib "href" aud
+                              else fromAttrib "href" $ head vid
