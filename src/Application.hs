@@ -9,7 +9,7 @@ module Application where
 import Control.Lens
 import Snap.Snaplet
 import Snap.Snaplet.Heist
-import Snap.Snaplet.Groundhog.Postgresql
+import Snap.Snaplet.Groundhog.Postgresql (HasGroundhogPostgres(..), GroundhogPostgres)
 import "mtl" Control.Monad.State (get)
 import Network.HTTP.Client
 ------------------------------------------------------------------------------

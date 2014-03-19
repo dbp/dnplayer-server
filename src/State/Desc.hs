@@ -26,7 +26,7 @@ mkPersist defaultCodegenConfig { namingStyle = lowerCaseSuffixNamingStyle} [grou
 |]
 
 getDesc :: Int -> Int -> Int -> AppHandler (Maybe Text)
-getDesc yr mn dy = one $ project DescField (YearField ==. yr &&. MonthField ==. mn &&. DayField ==. dy)
+getDesc yr mn dy = one $ gh $ project DescField (YearField ==. yr &&. MonthField ==. mn &&. DayField ==. dy)
 
 newDesc :: Int -> Int -> Int -> Text -> AppHandler ()
-newDesc yr mn dy desc = void $ insert $ Desc yr mn dy desc
+newDesc yr mn dy desc = void $ gh $ insert $ Desc yr mn dy desc

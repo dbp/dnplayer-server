@@ -5,17 +5,44 @@ module Snap.Snaplet.Groundhog.Postgresql
         ( initGroundhogPostgres
         , GroundhogPostgres
         , HasGroundhogPostgres(..)
+        , gh
+
+        , (==.), (&&.), (=.), (||.)
+        , (/=.), (<.), (<=.), (>.), (>=.)
+        , (~>), limitTo, offsetBy, orderBy
         , insert
+        , insert_
+        , insertBy
+        , insertByAll
+        , replace
+        , replaceBy
+        , select
+        , selectAll
+        , get
+        , getBy
+        , update
+        , delete
+        , deleteBy
+        , deleteAll
+        , count
+        , countAll
         , project
-        , (G.==.)
-        , (G.&&.)
+        , migrate
+
+        , executeRaw
+        , queryRaw
+
+        , insertList
+        , getList
+
         )
   where
 
 import           Prelude hiding ((++))
 import           Control.Applicative
 import "MonadCatchIO-transformers" Control.Monad.CatchIO (MonadCatchIO)
-import           Snap
+import           Control.Monad.Logger
+import           Snap hiding (get)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Configurator as C
@@ -29,16 +56,15 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import qualified Data.Text.Lazy.Builder.Int as TB
 import qualified Data.Text.Lazy.Builder.RealFloat as TB
-import qualified Database.Groundhog as G
-import qualified Database.Groundhog.Core as G
-import qualified Database.Groundhog.Postgresql as G
+import           Database.Groundhog
+import           Database.Groundhog.Postgresql
 
 (++) :: Monoid a => a -> a -> a
 (++) = mappend
 infixr 5 ++
 
 data GroundhogPostgres = GroundhogPostgres
-      { pgPool :: Pool G.Postgresql
+      { pgPool :: Pool Postgresql
       }
 
 -- Taken from snaplet-postgresql-simple
@@ -123,27 +149,19 @@ class (MonadCatchIO m) => HasGroundhogPostgres m where
     getGroundhogPostgresState :: m GroundhogPostgres
 
 description :: T.Text
-description = "PostgreSQL abstraction"
+description = "PostgreSQL abstraction using Groundhog"
 
 
 initGroundhogPostgres :: SnapletInit b GroundhogPostgres
-initGroundhogPostgres = makeSnaplet "postgresql-simple" description Nothing $ do
+initGroundhogPostgres = makeSnaplet "groundhog-postgresql" description Nothing $ do
     config <- getSnapletUserConfig
     connstr <- liftIO $ getConnectionString config
-    pool <- G.createPostgresqlPool (B8.unpack connstr) 5
+    pool <- createPostgresqlPool (B8.unpack connstr) 5
     return $ GroundhogPostgres pool
 
 
-insert :: (HasGroundhogPostgres m, G.PersistEntity v, MonadSnap m) => v -> m (G.AutoKey v)
-insert v = do s <- fmap pgPool getGroundhogPostgresState
-              liftIO $ G.runDbConn (G.insert v) s
-
-project :: ( HasGroundhogPostgres n
-           , MonadSnap n
-           , G.PersistEntity v
-           , G.EntityConstr v c
-           , G.Projection p G.Postgresql (G.RestrictionHolder v c) a
-           , G.HasSelectOptions opts G.Postgresql (G.RestrictionHolder v c))
-        => p -> opts -> n [a]
-project p opts = do s <- fmap pgPool getGroundhogPostgresState
-                    liftIO $ G.runDbConn (G.project p opts) s
+gh :: (MonadSnap m, HasGroundhogPostgres m)
+            => DbPersist Postgresql (NoLoggingT IO) a
+            -> m a
+gh f = do cm <- fmap pgPool getGroundhogPostgresState
+          liftIO $ runDbConn f cm

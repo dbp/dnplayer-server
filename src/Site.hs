@@ -28,8 +28,7 @@ import           Network.HTTP.Client
 import           Network.HTTP.Types.Header
 import           Data.Maybe
 import           Text.HTML.TagSoup
-import           Database.Groundhog.TH
-import           Snap.Snaplet.Groundhog.Postgresql
+import           Snap.Snaplet.Groundhog.Postgresql hiding (count)
 ------------------------------------------------------------------------------
 import           Application
 import           State.Desc

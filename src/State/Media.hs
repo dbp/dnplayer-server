@@ -27,7 +27,7 @@ mkPersist defaultCodegenConfig { namingStyle = lowerCaseSuffixNamingStyle} [grou
 
 
 getMedia :: Int -> Int -> Int -> AppHandler (Maybe Text)
-getMedia yr mn dy = one $ project MediaField ((YearField ==. yr) &&. MonthField ==. mn &&. DayField ==. dy)
+getMedia yr mn dy = one $ gh $ project MediaField ((YearField ==. yr) &&. MonthField ==. mn &&. DayField ==. dy)
 
 newMedia :: Int -> Int -> Int -> Text -> AppHandler ()
-newMedia yr mn dy url = void $ insert $ Media yr mn dy url
+newMedia yr mn dy url = void $ gh $ insert $ Media yr mn dy url
